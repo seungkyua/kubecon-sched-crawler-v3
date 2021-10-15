@@ -2,35 +2,16 @@ import argparse, os, requests, bs4, lxml
 # import webbrowser
 
 """
-$ python start.py -date='2021-10-14' -d='20211014_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python start.py -date='2021-10-14' -d='20211014_0355' -start=' 3:55am KST' -end=' 4:30am KST'
-$ python start.py -date='2021-10-14' -d='20211014_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python start.py -date='2021-10-14' -d='20211014_0725' -start=' 7:25am KST' -end=' 7:30am KST'
-$ python start.py -date='2021-10-14' -d='20211014_0830' -start=' 8:30am KST' -end=' 9:25am KST'
-$ python start.py -date='2021-10-14' -d='20211014_0925' -start=' 9:25am KST' -end=' 9:30am KST'
-
-
-$ python start.py -date='2021-10-15' -d='20211015_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python start.py -date='2021-10-15' -d='20211015_0355' -start=' 3:55am KST' -end=' 4:00am KST'
-$ python start.py -date='2021-10-15' -d='20211015_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python start.py -date='2021-10-15' -d='20211015_0725' -start=' 7:25am KST' -end=' 7:30am KST'
-$ python start.py -date='2021-10-15' -d='20211015_0830' -start=' 8:30am KST' -end=' 9:00am KST'
-$ python start.py -date='2021-10-15' -d='20211015_0925' -start=' 9:25am KST' -end=' 9:45am KST'
-
-
-$ python start.py -date='2021-10-16' -d='20211016_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python start.py -date='2021-10-16' -d='20211016_0355' -start=' 3:55am KST' -end=' 4:30am KST'
-$ python start.py -date='2021-10-16' -d='20211016_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python start.py -date='2021-10-16' -d='20211016_0725' -start=' 7:25am KST' -end=' 8:00am KST'
-$ python start.py -date='2021-10-16' -d='20211016_0830' -start=' 8:30am KST' -end=' 9:15am KST'
-$ python start.py -date='2021-10-16' -d='20211016_0925' -start=' 9:25am KST' -end='00:00am KST'
+$ python start.py -p='kccncna2021' -date='2021-10-14' -start=' 3:00am KST' -end='00:00 KST'
+$ python start.py -p='kccncna2021' -date='2021-10-15' -start=' 3:00am KST' -end='00:00 KST'
+$ python start.py -p='kccncna2021' -date='2021-10-16' -start=' 3:00am KST' -end='00:00 KST'
 """
 
 def get_args():
     parser = argparse.ArgumentParser(description='Say hello')
     parser.add_argument('-n', '--name', metavar='name', default='World', help='Name to greet')
+    parser.add_argument('-p', '--place', metavar='place', default='', help='place and year')
     parser.add_argument('-date', '--date', metavar='date', default='', help='date ex)2021-10-14')
-    parser.add_argument('-d', '--dir', metavar='dir', default='', help='directory')
     parser.add_argument('-start', '--start-time', metavar='start_time', default='12:00am KST', help='time ex)12:00am KST')
     parser.add_argument('-end', '--end-time', metavar='end_time', default=' 1:00am KST', help='time ex) 1:00am KST')
     return parser.parse_args()
@@ -53,7 +34,7 @@ def get_content_with_element_string(text, element, start, end):
     start_idx = text.find(str(tags[tags.index(first_tag)]))
 
     end_idx = 0
-    if end != '00:00am KST':
+    if end != '00:00 KST':
         end_tag = soup.find(element, string=end)
         end_idx = text.find(str(tags[tags.index(end_tag)]))
         # print(tags.index(first_tag))
@@ -62,7 +43,6 @@ def get_content_with_element_string(text, element, start, end):
         end_tag = soup.find('div', {'class': 'sched-container-bottom'})
         end_tag_string = str(end_tag)
         end_tag_string_idx = end_tag_string.find('>') + 1
-        print(end_tag_string[:end_tag_string_idx])
         end_idx = text.rindex(end_tag_string[:end_tag_string_idx])
 
     return text[start_idx:end_idx]
@@ -76,6 +56,8 @@ def get_content_with_element_string(text, element, start, end):
 
 
 def write_content(sess, base_url, headers, cookies, dir):
+    os.makedirs(dir, exist_ok=True)
+
     # sess.span.extract()
     sess_url = sess.get('href')
     sess_title = sess.get_text().strip().replace('/', '')
@@ -95,11 +77,12 @@ def write_content(sess, base_url, headers, cookies, dir):
         print('There was no "tip-description"')
         return
 
-    sess_speaker_elem = sess_soup.select('h2 > a')[0]
-    if sess_speaker_elem is None:
+    sess_speaker_elems = sess_soup.select('h2 > a')
+    if len(sess_speaker_elems) < 1:
         print('There was no "speaker"')
         return
 
+    sess_speaker_elem = sess_soup.select('h2 > a')[0]
     sess_role_elem = sess_soup.find('div', {'class': 'sched-event-details-role-company'})
 
     text_filename = dir + '_' + sess_title + '.txt'
@@ -130,16 +113,13 @@ def main():
     args = get_args()
     print('Hello, ' + args.name + '!' )
 
-    os.makedirs(args.dir, exist_ok=True)
-
-
     # webbrowser.open('https://inventwithpython.com/')
 
     headers = {'Content-Type': 'text/html; charset=utf-8'}
     cookies = {'timezone_display': '"Asia/Seoul"'}
 
     # base_url = 'https://kccncna2021.sched.com/2021-10-14/list?iframe=no'
-    base_url = 'https://kccncna2021.sched.com/'
+    base_url = 'https://' + args.place + '.sched.com/'
     res = requests.get(base_url + args.date + "/list?iframe=no", headers=headers, cookies=cookies)
     try:
         res.raise_for_status()
@@ -156,10 +136,27 @@ def main():
     content = get_content_with_element_string(res.text, 'h3', args.start_time, args.end_time)
 
     soup = bs4.BeautifulSoup(content.strip(), 'lxml')
-    session_elem = soup.select('a')
 
-    for sess in session_elem:
-        write_content(sess, base_url, headers, cookies, args.dir)
+
+    each_elem = soup.select('h3')
+    for i in range(len(each_elem)):
+        h3_elem = soup.find('h3')
+        sched_a_elem = soup.find('a')
+        time_str = h3_elem.get_text().strip()
+        time_str = time_str.split(' ')[0]
+        time_str = time_str.replace(':', '').replace('am', '')
+        if len(time_str) < 4:
+            time_str = '0' + time_str
+
+        dir = args.date.replace('-', '') + '_' + time_str
+        write_content(sched_a_elem, base_url, headers, cookies, dir)
+        soup.h3.decompose()
+        soup.div.decompose()
+
+
+    # session_elem = soup.select('a')
+    # for sess in session_elem:
+    #     write_content(sess, base_url, headers, cookies, dir)
 
 
 if __name__ == '__main__':
