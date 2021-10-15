@@ -1,4 +1,8 @@
-import argparse, os, requests, bs4, lxml
+import argparse
+import os
+import requests
+import bs4
+# import lxml
 # import webbrowser
 
 """
@@ -7,14 +11,17 @@ $ python start.py -p='kccncna2021' -date='2021-10-15' -start=' 3:00am KST' -end=
 $ python start.py -p='kccncna2021' -date='2021-10-16' -start=' 3:00am KST' -end='00:00 KST'
 """
 
+
 def get_args():
     parser = argparse.ArgumentParser(description='Say hello')
     parser.add_argument('-n', '--name', metavar='name', default='World', help='Name to greet')
     parser.add_argument('-p', '--place', metavar='place', default='', help='place and year')
     parser.add_argument('-date', '--date', metavar='date', default='', help='date ex)2021-10-14')
-    parser.add_argument('-start', '--start-time', metavar='start_time', default='12:00am KST', help='time ex)12:00am KST')
+    parser.add_argument('-start', '--start-time', metavar='start_time', default='12:00am KST',
+                        help='time ex)12:00am KST')
     parser.add_argument('-end', '--end-time', metavar='end_time', default=' 1:00am KST', help='time ex) 1:00am KST')
     return parser.parse_args()
+
 
 def get_content_with_element_string(text, element, start, end):
     soup = bs4.BeautifulSoup(text, 'html.parser')
@@ -23,7 +30,7 @@ def get_content_with_element_string(text, element, start, end):
     # containers = soup.h3.next_tag
     # containers = soup.select('#sched-content-inner .sched-container')
     tags = soup.select(element)
-    if tags == []:
+    if len(tags) < 1:
         print('Could not find schedule tags')
         return
 
@@ -33,7 +40,7 @@ def get_content_with_element_string(text, element, start, end):
     first_tag = soup.find(element, string=start)
     start_idx = text.find(str(tags[tags.index(first_tag)]))
 
-    end_idx = 0
+    # end_idx = 0
     if end != '00:00 KST':
         end_tag = soup.find(element, string=end)
         end_idx = text.find(str(tags[tags.index(end_tag)]))
@@ -55,8 +62,8 @@ def get_content_with_element_string(text, element, start, end):
     # print(str(content_inners[7]))
 
 
-def write_content(sess, base_url, headers, cookies, dir):
-    os.makedirs(dir, exist_ok=True)
+def write_content(sess, base_url, headers, cookies, save_dir):
+    os.makedirs(save_dir, exist_ok=True)
 
     # sess.span.extract()
     sess_url = sess.get('href')
@@ -68,8 +75,8 @@ def write_content(sess, base_url, headers, cookies, dir):
     sess_res = requests.get(sess_full_url, headers=headers, cookies=cookies)
     try:
         sess_res.raise_for_status()
-    except Execption as exc:
-        print('There was a problem: %s' % (exc))
+    except Exception as exc:
+        print('There was a problem: %s' % exc)
 
     sess_soup = bs4.BeautifulSoup(sess_res.text, 'lxml')
     sess_desc_elem = sess_soup.find('div', {'class': 'tip-description'})
@@ -85,25 +92,25 @@ def write_content(sess, base_url, headers, cookies, dir):
     sess_speaker_elem = sess_soup.select('h2 > a')[0]
     sess_role_elem = sess_soup.find('div', {'class': 'sched-event-details-role-company'})
 
-    text_filename = dir + '_' + sess_title + '.txt'
-    sess_desc_file = open(os.path.join(dir, text_filename ), 'w')
+    text_filename = save_dir + '_' + sess_title + '.txt'
+    sess_desc_file = open(os.path.join(save_dir, text_filename), 'w')
     sess_desc_file.write(sess_desc_elem.get_text().strip() + '\n\n')
     sess_desc_file.write('Speaker Role: ' + sess_role_elem.get_text() + '\n')
     sess_desc_file.write('Speaker Name: ' + sess_speaker_elem.get_text() + '\n')
     sess_desc_file.close()
 
     sess_file_elem = sess_soup.select('.file-uploaded')
-    if sess_file_elem != []:
+    if len(sess_file_elem) > 0:
         uploaded_file_url = sess_file_elem[0].get('href')
         file_res = requests.get(uploaded_file_url)
         try:
             file_res.raise_for_status()
-        except Execption as exc:
-            print('There was a problem: %s' % (exc))
+        except Exception as exc:
+            print('There was a problem: %s' % exc)
 
         _, file_extension = os.path.splitext(uploaded_file_url)
-        bin_filename = dir + '_' + sess_title + file_extension
-        sess_upload_file = open(os.path.join(dir, bin_filename), 'wb')
+        bin_filename = save_dir + '_' + sess_title + file_extension
+        sess_upload_file = open(os.path.join(save_dir, bin_filename), 'wb')
         for chunk in file_res.iter_content(100000):
             sess_upload_file.write(chunk)
         sess_upload_file.close()
@@ -111,7 +118,7 @@ def write_content(sess, base_url, headers, cookies, dir):
 
 def main():
     args = get_args()
-    print('Hello, ' + args.name + '!' )
+    print('Hello, ' + args.name + '!')
 
     # webbrowser.open('https://inventwithpython.com/')
 
@@ -123,9 +130,8 @@ def main():
     res = requests.get(base_url + args.date + "/list?iframe=no", headers=headers, cookies=cookies)
     try:
         res.raise_for_status()
-    except Execption as exc:
-        print('There was a problem: %s' % (exc))
-
+    except Exception as exc:
+        print('There was a problem: %s' % exc)
 
     # schedFile = open('2021-10-12.txt', 'wb')
     # for chunk in res.iter_content(100000):
@@ -137,7 +143,6 @@ def main():
 
     soup = bs4.BeautifulSoup(content.strip(), 'lxml')
 
-
     each_elem = soup.select('h3')
     for i in range(len(each_elem)):
         h3_elem = soup.find('h3')
@@ -148,11 +153,10 @@ def main():
         if len(time_str) < 4:
             time_str = '0' + time_str
 
-        dir = args.date.replace('-', '') + '_' + time_str
-        write_content(sched_a_elem, base_url, headers, cookies, dir)
+        save_dir = args.date.replace('-', '') + '_' + time_str
+        write_content(sched_a_elem, base_url, headers, cookies, save_dir)
         soup.h3.decompose()
         soup.div.decompose()
-
 
     # session_elem = soup.select('a')
     # for sess in session_elem:
