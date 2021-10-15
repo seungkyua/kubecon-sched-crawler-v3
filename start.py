@@ -2,28 +2,28 @@ import argparse, os, requests, bs4, lxml
 # import webbrowser
 
 """
-$ python hello.py -date='2021-10-14' -d='20211014_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python hello.py -date='2021-10-14' -d='20211014_0355' -start=' 3:55am KST' -end=' 4:30am KST'
-$ python hello.py -date='2021-10-14' -d='20211014_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python hello.py -date='2021-10-14' -d='20211014_0725' -start=' 7:25am KST' -end=' 7:30am KST'
-$ python hello.py -date='2021-10-14' -d='20211014_0830' -start=' 8:30am KST' -end=' 9:25am KST'
-$ python hello.py -date='2021-10-14' -d='20211014_0925' -start=' 9:25am KST' -end=' 9:30am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0300' -start=' 3:00am KST' -end=' 3:30am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0355' -start=' 3:55am KST' -end=' 4:30am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0630' -start=' 6:30am KST' -end=' 7:25am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0725' -start=' 7:25am KST' -end=' 7:30am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0830' -start=' 8:30am KST' -end=' 9:25am KST'
+$ python start.py -date='2021-10-14' -d='20211014_0925' -start=' 9:25am KST' -end=' 9:30am KST'
 
 
-$ python hello.py -date='2021-10-15' -d='20211015_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python hello.py -date='2021-10-15' -d='20211015_0355' -start=' 3:55am KST' -end=' 4:00am KST'
-$ python hello.py -date='2021-10-15' -d='20211015_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python hello.py -date='2021-10-15' -d='20211015_0725' -start=' 7:25am KST' -end=' 7:30am KST'
-$ python hello.py -date='2021-10-15' -d='20211015_0830' -start=' 8:30am KST' -end=' 9:00am KST'
-$ python hello.py -date='2021-10-15' -d='20211015_0925' -start=' 9:25am KST' -end=' 9:45am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0300' -start=' 3:00am KST' -end=' 3:30am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0355' -start=' 3:55am KST' -end=' 4:00am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0630' -start=' 6:30am KST' -end=' 7:25am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0725' -start=' 7:25am KST' -end=' 7:30am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0830' -start=' 8:30am KST' -end=' 9:00am KST'
+$ python start.py -date='2021-10-15' -d='20211015_0925' -start=' 9:25am KST' -end=' 9:45am KST'
 
 
-$ python hello.py -date='2021-10-16' -d='20211016_0300' -start=' 3:00am KST' -end=' 3:30am KST'
-$ python hello.py -date='2021-10-16' -d='20211016_0355' -start=' 3:55am KST' -end=' 4:30am KST'
-$ python hello.py -date='2021-10-16' -d='20211016_0630' -start=' 6:30am KST' -end=' 7:25am KST'
-$ python hello.py -date='2021-10-16' -d='20211016_0725' -start=' 7:25am KST' -end=' 8:00am KST'
-$ python hello.py -date='2021-10-16' -d='20211016_0830' -start=' 8:30am KST' -end=' 9:15am KST'
-$ python hello.py -date='2021-10-16' -d='20211016_0925' -start=' 9:25am KST' -end='00:00am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0300' -start=' 3:00am KST' -end=' 3:30am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0355' -start=' 3:55am KST' -end=' 4:30am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0630' -start=' 6:30am KST' -end=' 7:25am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0725' -start=' 7:25am KST' -end=' 8:00am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0830' -start=' 8:30am KST' -end=' 9:15am KST'
+$ python start.py -date='2021-10-16' -d='20211016_0925' -start=' 9:25am KST' -end='00:00am KST'
 """
 
 def get_args():
